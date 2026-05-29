@@ -1,7 +1,11 @@
+import os
 import socket
 import subprocess
+import sys
 
 DEFAULT_DEBUG_PORT = 9222
+
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 
 def is_bilibili_running() -> bool:
@@ -10,6 +14,7 @@ def is_bilibili_running() -> bool:
         result = subprocess.run(
             ["tasklist", "/fo", "csv", "/nh"],
             capture_output=True, text=True, encoding="gbk", timeout=5,
+            creationflags=_NO_WINDOW,
         )
         return "哔哩哔哩.exe" in result.stdout
     except Exception:

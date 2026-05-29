@@ -1,9 +1,11 @@
 import os
-import subprocess
 import shutil
+import subprocess
+import sys
 import tempfile
 
-# Common Bilibili installation paths to search
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+
 BILIBILI_SEARCH_PATHS = [
     r"E:\B站\bilibili",
     r"C:\Program Files\bilibili",
@@ -22,12 +24,12 @@ def find_bilibili_install() -> str | None:
     """Find Bilibili installation directory. Returns path or None."""
     paths_to_check = list(BILIBILI_SEARCH_PATHS)
 
-    # Also check from running process
+    # Check from running process
     try:
-        import subprocess as sp
-        r = sp.run(
+        r = subprocess.run(
             ["wmic", "process", "where", 'name="哔哩哔哩.exe"', "get", "executablepath"],
             capture_output=True, text=True, timeout=5,
+            creationflags=_NO_WINDOW,
         )
         for line in r.stdout.splitlines():
             line = line.strip()
@@ -39,16 +41,16 @@ def find_bilibili_install() -> str | None:
     except Exception:
         pass
 
-    # Also check registry
+    # Check registry
     try:
-        import subprocess as sp
         for key in [
             r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\bilibili",
             r"HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\bilibili",
         ]:
-            r = sp.run(
+            r = subprocess.run(
                 ["reg", "query", key, "/v", "InstallLocation"],
                 capture_output=True, text=True, timeout=5,
+                creationflags=_NO_WINDOW,
             )
             for line in r.stdout.splitlines():
                 if "InstallLocation" in line:
@@ -73,11 +75,11 @@ def is_asr_injected(install_dir: str) -> bool:
     if not os.path.isfile(asar_path):
         return False
     try:
-        import subprocess as sp
         with tempfile.TemporaryDirectory() as tmp:
-            r = sp.run(
+            r = subprocess.run(
                 ["npx", "--yes", "@electron/asar", "extract", asar_path, tmp],
                 capture_output=True, text=True, timeout=30,
+                creationflags=_NO_WINDOW,
             )
             if r.returncode != 0:
                 return False
@@ -118,6 +120,7 @@ def patch_asar(install_dir: str, status_callback=None) -> bool:
         r = subprocess.run(
             ["npx", "--yes", "@electron/asar", "extract", asar_path, work_dir],
             capture_output=True, text=True, timeout=60,
+            creationflags=_NO_WINDOW,
         )
         if r.returncode != 0:
             if status_callback:
@@ -149,6 +152,7 @@ def patch_asar(install_dir: str, status_callback=None) -> bool:
         r = subprocess.run(
             ["npx", "--yes", "@electron/asar", "pack", work_dir, asar_path],
             capture_output=True, text=True, timeout=60,
+            creationflags=_NO_WINDOW,
         )
         shutil.rmtree(work_dir, ignore_errors=True)
 
