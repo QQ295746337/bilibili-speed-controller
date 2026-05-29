@@ -1,0 +1,6 @@
+__pycache__/
+.claude/
+*.pyc
+.asar_extract/
+inject.js
+app.asar.bak
