@@ -4,3 +4,6 @@ __pycache__/
 .asar_extract/
 inject.js
 app.asar.bak
+build/
+dist/
+*.spec
